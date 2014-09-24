@@ -19,11 +19,10 @@ import Tkinter as tk
 import tkFileDialog
 
 import PIL
-import pyfits as pf
+import pyfits as pf     # sudo apt-get install python-pyfits
 import numpy as np
-import ImageTk as itk
+import ImageTk as itk   # sudo apt-get install python-pil.imagetk
 
-import pyfits
 
 import model
 from model import Ellipse, Mask, ROI
