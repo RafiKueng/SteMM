@@ -4,7 +4,7 @@
 """
 PHOTOMETRYDEMO - controller.py
 
-basically the interface to galfit
+basically the interface to galfit and fits files
 
 
 Created on Tue Sep 23 12:09:45 2014
@@ -14,3 +14,5 @@ Created on Tue Sep 23 12:09:45 2014
 
 def sendToGalfit():
     pass
+
+
