@@ -13,6 +13,9 @@ Created on Tue Sep 23 12:09:45 2014
 import numpy as np
 import math
 
+
+data = {}
+
 class Model(object):
     
     def __init__(self):
@@ -23,16 +26,17 @@ class Model(object):
 
 class Selection(object):
 
-    def __init__(self, canv, nr):
+    def __init__(self, canv, nr, color):
         self.canv = canv
         self.x1, self.y1, self.x2, self.y2 = (30,60,100,120)
         self.nr = nr
+        self.color = color
         
         tg = 'rect_%i' % nr
         tg2 = 'rc_%i_' % nr
-        self.rect = canv.create_rectangle(self.x1, self.y1, self.x2, self.y2, tags=tg)
-        self.p_a  = canv.create_circle(self.x1,self.y1,5, fill='black', tags=tg2+'ul')
-        self.p_b  = canv.create_circle(self.x2,self.y2,5, fill='black', tags=tg2+'lr')
+        self.rect = canv.create_rectangle(self.x1, self.y1, self.x2, self.y2, tags=tg, outline=self.color)
+        self.p_a  = canv.create_circle(self.x1,self.y1,5, fill=self.color, tags=tg2+'ul')
+        self.p_b  = canv.create_circle(self.x2,self.y2,5, fill=self.color, tags=tg2+'lr')
         
     def transform(self, pnt, x, y):
         
@@ -71,7 +75,7 @@ class Selection(object):
 #
 class Mask(Selection):
     def __init__(self, canv, nr):
-        Selection.__init__(self, canv, nr)
+        Selection.__init__(self, canv, nr, color='yellow')
         self.type = "mask"
 
         self.lines = []
@@ -79,7 +83,7 @@ class Mask(Selection):
         nlines = 10
         for i in range(1,nlines+1):
             x = i*dx/(nlines+1)
-            l = self.canv.create_line(self.x1+x, self.y1, self.x1+x, self.y2, tags='rect_%i' % self.nr)
+            l = self.canv.create_line(self.x1+x, self.y1, self.x1+x, self.y2, tags='rect_%i' % self.nr, fill=self.color)
             #print self.x1+x, self.y1, self.x1+x, self.y2
             self.lines.append(l)
         
@@ -100,7 +104,7 @@ class Mask(Selection):
 class ROI(Selection):
     def __init__(self, canv, nr):
         print "init roi"
-        Selection.__init__(self, canv, nr)
+        Selection.__init__(self, canv, nr, color='green')
         self.type = "roi"
 
         self.lines = []
@@ -119,11 +123,11 @@ class ROI(Selection):
                 maxy = np.max([self.y1, self.y2])
 
                 if xx<minx or xx>maxx:
-                    l1 = self.canv.create_line(xx, 0, xx, sy//2, tags='roi_%i' % self.nr)
-                    l2 = self.canv.create_line(xx, sy//2, xx, sy, tags='roi_%i' % self.nr)
+                    l1 = self.canv.create_line(xx, 0, xx, sy//2, tags='roi_%i' % self.nr, fill=self.color)
+                    l2 = self.canv.create_line(xx, sy//2, xx, sy, tags='roi_%i' % self.nr, fill=self.color)
                 else:
-                    l1 = self.canv.create_line(xx, 0, xx, miny, tags='roi_%i' % self.nr)
-                    l2 = self.canv.create_line(xx, maxy, xx, sy, tags='roi_%i' % self.nr)
+                    l1 = self.canv.create_line(xx, 0, xx, miny, tags='roi_%i' % self.nr, fill=self.color)
+                    l2 = self.canv.create_line(xx, maxy, xx, sy, tags='roi_%i' % self.nr, fill=self.color)
 
                 self.lines.append((l1,l2))
         

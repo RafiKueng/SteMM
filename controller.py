@@ -12,7 +12,17 @@ Created on Tue Sep 23 12:09:45 2014
 """
 
 
+
 def sendToGalfit():
     pass
 
 
+def openFitsFile(filename):
+    pass
+    
+    
+    
+    
+# testing
+if __name__ == "__main__":
+    pass

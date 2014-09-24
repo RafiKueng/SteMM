@@ -15,14 +15,23 @@ import math
 import numpy as np
 
 
-import Tkinter
 import Tkinter as tk
 import tkFileDialog
 
+import PIL
+import pyfits as pf
+import numpy as np
+import ImageTk as itk
+
+import pyfits
+
 import model
 from model import Ellipse, Mask, ROI
+from model import data
 
 import controller
+
+from controller import openFitsFile
 
 
 glob = dict()
@@ -57,10 +66,10 @@ tk.Canvas.create_circle = _create_circle
 
         
 
-class PhotoMetryGUI(Tkinter.Tk):
+class PhotoMetryGUI(tk.Tk):
 
     def __init__(self,parent):
-        Tkinter.Tk.__init__(self,parent)
+        tk.Tk.__init__(self,parent)
         self.parent = parent
         self.initialize()
         
@@ -121,7 +130,36 @@ class PhotoMetryGUI(Tkinter.Tk):
 #        options['initialfile'] = 'myfile.txt'
         options['parent'] = self
         options['title'] = 'select fits file to open...'
-        tkFileDialog.askopenfilename(**options)
+
+        filename = tkFileDialog.askopenfilename(**options)
+        
+#        self.bg_img = openFitsFile(filename)
+
+        
+        fits = pf.open(filename)
+        scidata = fits[0].data
+        uimg = np.clip(scidata, 0, 255).astype(np.uint8)
+        self.pilimg = PIL.Image.fromarray(uimg)
+        sx, sy = self.pilimg.size
+        
+        f = 2  #hardcoded scaling
+        self.bg_scale = f
+
+        self.pilimg = self.pilimg.resize((sx*f,sy*f), PIL.Image.ANTIALIAS)
+        self.piimg = itk.PhotoImage(self.pilimg)
+        h = self.piimg.height()
+        w = self.piimg.width()
+        self.bg = self.canv.create_image(h//2,w//2,image=self.piimg)
+        
+        data['I'] = {
+            'scidata': scidata,
+            'mapped' : uimg,
+            'pil'    : self.pilimg,
+            'pi'     : self.piimg,
+            'tk'     : self.bg,
+        }
+        
+        
 
     def createEllipse(self):
         #print "onNewClick"
