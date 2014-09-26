@@ -24,16 +24,14 @@ import numpy as np
 import ImageTk as itk   # sudo apt-get install python-pil.imagetk
 
 
-import model
-from model import Ellipse, Mask, ROI
-from model import data
-
-import controller
-
-from controller import openFitsFile
+#import model
+from model import Model, Ellipse, Mask, ROI
 
 
-glob = dict()
+from controller import Controller
+
+
+
 
 
 
@@ -67,7 +65,7 @@ tk.Canvas.create_circle = _create_circle
 
 class PhotoMetryGUI(tk.Tk):
 
-    def __init__(self,parent):
+    def __init__(self,parent, model, controller):
         tk.Tk.__init__(self,parent)
         self.parent = parent
         self.initialize()
@@ -75,6 +73,11 @@ class PhotoMetryGUI(tk.Tk):
         self.el = None
         self.roi = None
         self.masks = []
+        
+        self.C = controller
+        self.data = model   #TODO replace self.data with self.model
+        self.model = model
+        self.data.masks = self.masks
 
     def initialize(self):
         
@@ -94,6 +97,10 @@ class PhotoMetryGUI(tk.Tk):
 
         b = tk.Button(self.toolbar, text="roi", width=6, command=self.createROI)
         b.pack(side=tk.LEFT, padx=2, pady=2)
+
+        b = tk.Button(self.toolbar, text="RUN", width=6, command=self.runGalfit)
+        b.pack(side=tk.RIGHT, padx=2, pady=2)
+
 
         self.toolbar.pack(side=tk.TOP, fill=tk.X)
 
@@ -141,22 +148,29 @@ class PhotoMetryGUI(tk.Tk):
         self.pilimg = PIL.Image.fromarray(uimg)
         sx, sy = self.pilimg.size
         
-        f = 2  #hardcoded scaling
+        f = 2.0  #hardcoded scaling
         self.bg_scale = f
+        self.model.scale = f
+        self.canv.scale = f
+        self.model.shape = (sx, sy)
 
-        self.pilimg = self.pilimg.resize((sx*f,sy*f), PIL.Image.ANTIALIAS)
+        self.pilimg = self.pilimg.resize((int(sx*f),int(sy*f)), PIL.Image.ANTIALIAS)
         self.piimg = itk.PhotoImage(self.pilimg)
         h = self.piimg.height()
         w = self.piimg.width()
         self.bg = self.canv.create_image(h//2,w//2,image=self.piimg)
         
-        data['I'] = {
+        self.data.bg = {
             'scidata': scidata,
             'mapped' : uimg,
             'pil'    : self.pilimg,
             'pi'     : self.piimg,
             'tk'     : self.bg,
         }
+        
+        self.model.name = '.'.join(filename.split('/')[-1].split('.')[0:-1])
+        self.model.filename = filename.split('/')[-1]
+        self.model.filepath = filename
         
         
 
@@ -165,6 +179,7 @@ class PhotoMetryGUI(tk.Tk):
         #self.status.clear()
         if not self.el:
             self.el = Ellipse(self.canv)
+            self.data.ellipse = self.el
 
     def createMask(self):
         #self.status.set("createMask")
@@ -179,11 +194,21 @@ class PhotoMetryGUI(tk.Tk):
             roi = ROI(self.canv, n)
             self.roi = roi
             self.masks.append(roi)
+            self.data.roi = self.roi
+            
+            
+    def runGalfit(self):
+        self.status.set("... runing galfit ... please wait ...")
+        ec = C.galfit()
+        self.status.set("Done [%s]" % ec)
 
 
     def onCanvClick(self, evt):
         self.status.set("onCanvClick")
-        item = self.canv.find_closest(evt.x, evt.y)[0]
+        try:
+            item = self.canv.find_closest(evt.x, evt.y)[0]
+        except:
+            return
         tags = self.canv.gettags(item)
         print 'tags1:', tags
         
@@ -260,8 +285,20 @@ class PhotoMetryGUI(tk.Tk):
 
 
 
+    def askOutfileName(self):
+        options = {}
+        options['defaultextension'] = '.fits'
+        options['filetypes'] = [('fits files', '.fits'),('all files', '.*')]
+#        options['initialdir'] = 'C:\\'
+        options['initialfile'] = 'imgblock.fits'
+        options['parent'] = self
+        options['title'] = 'select output fits file to save...'
+
+        filename = tkFileDialog.asksaveasfilename(**options)        
 
 if __name__ == "__main__":
-    app = PhotoMetryGUI(None)
+    M = Model()
+    C = Controller(M)
+    app = PhotoMetryGUI(None, M, C)
     app.title('PhotoMetryDemo')
     app.mainloop()
