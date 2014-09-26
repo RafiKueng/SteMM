@@ -10,10 +10,12 @@ Created on Tue Sep 23 12:09:45 2014
 @author: rafik
 """
 
+import os
+import math
+
 import numpy as np
 import scipy as sp
 import scipy.ndimage.interpolation
-import math
 import pyfits
 
 
@@ -43,6 +45,10 @@ class Model(object):
                 for px, py in pixels:
                     renderedmask[px, py] = 0
 
+        try:
+            os.remove(filename)
+        except OSError:
+            pass
         hdu = pyfits.PrimaryHDU(np.rot90(renderedmask))
         hdu.writeto(filename)
         #renderedmask = sp.ndimage.interpolation.zoom(mask, 1./self.scale)

@@ -12,6 +12,7 @@ Created on Tue Sep 23 12:09:45 2014
 """
 
 import time
+import subprocess
 
 
 
@@ -20,28 +21,28 @@ templates = {
 'header' : '''
 ================================================================================
 # IMAGE and GALFIT CONTROL PARAMETERS
-A) {A:<20} # Input data image (FITS file)
-B) {B:<20} # Output data image block
-C) {C:<20} # Sigma image name (made from data if blank or "none") 
-D) {D:<20} # Input PSF image and (optional) diffusion kernel
-E) {E:<20} # PSF fine sampling factor relative to data 
-F) {F:<20} # Bad pixel mask (FITS image or ASCII coord list)
-G) {G:<20} # File with parameter constraints (ASCII file) 
-H) {H:<20} # Image region to fit (xmin xmax ymin ymax)
-I) {I:<20} # Size of the convolution box (x y)
-J) {J:<20} # Magnitude photometric zeropoint 
-K) {K:<20} # Plate scale (dx dy)   [arcsec per pixel]
-O) {O:<20} # Display type (regular, curses, both)
-P) {P:<20} # Options: 0=normal run; 1,2=make model/imgblock & quit
+A) {A:<20}  # Input data image (FITS file)
+B) {B:<20}  # Output data image block
+C) {C:<20}  # Sigma image name (made from data if blank or "none") 
+D) {D:<20}  # Input PSF image and (optional) diffusion kernel
+E) {E:<20}  # PSF fine sampling factor relative to data 
+F) {F:<20}  # Bad pixel mask (FITS image or ASCII coord list)
+G) {G:<20}  # File with parameter constraints (ASCII file) 
+H) {H:<20}  # Image region to fit (xmin xmax ymin ymax)
+I) {I:<20}  # Size of the convolution box (x y)
+J) {J:<20}  # Magnitude photometric zeropoint 
+K) {K:<20}  # Plate scale (dx dy)   [arcsec per pixel]
+O) {O:<20}  # Display type (regular, curses, both)
+P) {P:<20}  # Options: 0=normal run; 1,2=make model/imgblock & quit
 ''',
 
 'sersic' : '''
 
 # Sersic function
- 0) sersic             # Object type
- 1) {p1:<18} {p1t} # position x, y        [pixel]
+ 0) sersic               # Object type
+ 1) {p1:<16} {p1t} # position x, y        [pixel]
  3) {p3:<18} {p3t} # total magnitude    
- 4) {p4:<18} {p4t} #     R_e              [Pixels]
+ 4) {p4:<18} {p4t} # R_e              [Pixels]
  5) {p5:<18} {p5t} # Sersic exponent (deVauc=4, expdisk=1)  
  9) {p9:<18} {p9t} # axis ratio (b/a)   
 10) {p10:<18} {p10t} # position angle (PA)  [Degrees: Up=0, Left=90]
@@ -106,10 +107,30 @@ class Controller(object):
         self.model = model
         self.view = view
         
+    def setView(self, V):
+        self.view = V
         
         
     def galfit(self):
-        time.sleep(10)
+        print 'create config file'
+        self.view.msg('create config file')
+        self.createConfigFile()
+        print 'config file done'
+        self.view.msg('running galfit')
+
+#        process = sp.Popen('./galfit '+self.model.name+'.galfit', shell=True, stdout=sp.PIPE)
+#        process.wait()
+#        print process.returncode
+
+#        cmd = ['./galfit', self.model.name+'.galfit']
+#        p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+#        for line in p.stdout:
+#            print line
+#        p.wait()
+#        print p.returncode
+
+        rc = subprocess.call('./galfit '+self.model.name+'.galfit', shell=True)         
+        self.view.msg('done')        
         return "success"
 
         
@@ -172,18 +193,19 @@ class Controller(object):
             return self.generateContraintsFile()
             
         elif p=='H':
-            return self.model.getRegionCoords()
+            xmin, ymin, xmax, ymax = self.model.getRegionCoords()
+            return '%.1f %.1f %.1f %.1f' % (xmin, xmax, ymin, ymax)
             
         elif p=='I':
             if not self.model.psf:
                 self.model.createPSF()
-            return self.model.psf.getBoxSize()
+            return '%.1f %.1f' % self.model.psf.getBoxSize()
             
         elif p=='J':
             return self.model.getPhotometricZeropoint()
             
         elif p=='K':
-            return self.model.getPlateScale()
+            return '%.5f %.5f' % self.model.getPlateScale()
             
         elif p=='O':
             return 'regular'
@@ -236,6 +258,16 @@ class Controller(object):
     def generateContraintsFile(self):
         filename = 'constr.txt'
         #TODO
+
+        txt = '''
+# Component/    parameter   constraint	Comment
+# operation	(see below)   range
+1               n           3.5 to 6    # sersic index 
+'''
+        
+        with open(filename, 'w') as f:
+            f.write(txt)
+
         return filename
     
 

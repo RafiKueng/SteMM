@@ -294,11 +294,15 @@ class PhotoMetryGUI(tk.Tk):
         options['parent'] = self
         options['title'] = 'select output fits file to save...'
 
-        filename = tkFileDialog.asksaveasfilename(**options)        
+        filename = tkFileDialog.asksaveasfilename(**options)
+        
+    def msg(self, s):
+        self.status.set(s)
 
 if __name__ == "__main__":
     M = Model()
     C = Controller(M)
     app = PhotoMetryGUI(None, M, C)
+    C.setView(app)
     app.title('PhotoMetryDemo')
     app.mainloop()
