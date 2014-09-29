@@ -106,6 +106,8 @@ class Controller(object):
     def __init__(self, model, view=None):
         self.model = model
         self.view = view
+        self.prefix = '_' # prefix for paths for generated files
+        self.configfn = None # filename of config file .galfit / .feedme ...
         
     def setView(self, V):
         self.view = V
@@ -129,13 +131,13 @@ class Controller(object):
 #        p.wait()
 #        print p.returncode
 
-        rc = subprocess.call('./galfit '+self.model.name+'.galfit', shell=True)         
+        rc = subprocess.call('./galfit '+self.configfn, shell=True)         
         self.view.msg('done')        
         return "success"
 
         
     def createConfigFile(self):
-        fn = self.model.name + '.galfit'
+        fn = self.prefix + self.model.name + '.galfit'
         
         #create header
         params = {}
@@ -161,6 +163,8 @@ class Controller(object):
         
         with open(fn, 'w') as f:
             f.write(txt)
+            
+        self.configfn = fn
         return fn
             
 
@@ -172,25 +176,25 @@ class Controller(object):
         
         elif p=='B':
             #return self.view.askOutfileName()
-            return 'imgblock.fits'
+            return self.prefix + 'out.fits'
             
         elif p=='C':
             return 'none'
             
         elif p=='D':
             if not self.model.psf:
-                self.model.createPSF()
-            return self.model.psf.getFileName()
+                self.model.createPSF(pfx=self.prefix)
+            return self.prefix+self.model.psf.getFileName()
 
         elif p=='E':
             return '1'
 
         elif p=='F':
-            maskfn = self.model.getMaskFilename()
+            maskfn = self.model.getMaskFilename(pfx=self.prefix)
             return maskfn
             
         elif p=='G':
-            return self.generateContraintsFile()
+            return self.generateContraintsFile(self.prefix)
             
         elif p=='H':
             xmin, ymin, xmax, ymax = self.model.getRegionCoords()
@@ -198,7 +202,7 @@ class Controller(object):
             
         elif p=='I':
             if not self.model.psf:
-                self.model.createPSF()
+                self.model.createPSF(pfx=self.prefix)
             return '%.1f %.1f' % self.model.psf.getBoxSize()
             
         elif p=='J':
@@ -255,8 +259,8 @@ class Controller(object):
         
         
         
-    def generateContraintsFile(self):
-        filename = 'constr.txt'
+    def generateContraintsFile(self, pfx=''):
+        filename = pfx + 'constr.txt'
         #TODO
 
         txt = '''

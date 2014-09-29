@@ -34,8 +34,8 @@ class Model(object):
     def getRegionCoords(self):
         return self.roi.getRegionCoords()
         
-    def getMaskFilename(self):
-        filename = 'bla.fits'
+    def getMaskFilename(self, pfx=''):
+        filename = pfx+'mask.fits'
         sx, sy = self.shape
         
         renderedmask = np.ones((sx, sy), dtype=np.int)
@@ -51,13 +51,12 @@ class Model(object):
             pass
         hdu = pyfits.PrimaryHDU(np.rot90(renderedmask))
         hdu.writeto(filename)
-        #renderedmask = sp.ndimage.interpolation.zoom(mask, 1./self.scale)
-        #TODO implement saving as fits
+
         return filename
 
-    def createPSF(self):
+    def createPSF(self, pfx=''):
         #TODO
-        self.psf = PSF()
+        self.psf = PSF(pfx)
         
     def getPhotometricZeropoint(self):
         #TODO
@@ -425,7 +424,8 @@ class Ellipse(object):
 
 
 class PSF(object):
-    def __init__(self):
+    def __init__(self, pfx=''):
+        self.filename = pfx + 'psf.fits'
         #TODO
         pass
     
@@ -435,4 +435,4 @@ class PSF(object):
         
     def getFileName(self):
         #TODO
-        return 'psf.fits'
+        return self.filename
