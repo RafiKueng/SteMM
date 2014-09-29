@@ -1,0 +1,17 @@
+StellarMassMaps SteMM
+
+Basically a frontend for galfit with database access to CHFTL
+
+=Install
+
+You need the following:
+
+  * PIL    (should be installed; sudo apt-get install python-pil)
+  * ImageTk (sudo apt-get install python-pil.imagetk)
+  * pyfits (sudo apt-get install python-pyfits)
+  * Numpy Scipy matplotlib (sudo apt-get install python-numpy python-scipy python-matplotlib)
+
+or using pip:
+
+    pip install pil pyfits numpy scipy matplotlib
+

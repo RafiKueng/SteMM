@@ -2,9 +2,10 @@
 # -*- coding: utf-8 -*-
 
 """
-PHOTOMETRYDEMO - main.py
+PHOTOMETRYDEMO - view_tk.py
 
 Handles the ui (View in MVC)
+Implementaion in TkInter
 
 
 Created on Tue Sep 23 12:09:45 2014
